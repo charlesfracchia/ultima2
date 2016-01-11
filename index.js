@@ -18,6 +18,16 @@ var serial = new sp.SerialPort("/dev/ttyAMA0",{
   parser: sp.parsers.raw
 });
 
+function sendQuit (serial) {
+  serial.write("Q", function(err, results) {
+    if (err !== undefined){
+      console.log('err ' + err);
+    }else{
+      console.log(">>> Sent TELEM stop packet (Q)");
+    }
+  });
+}
+
 function getNVRAM(serial){
   serial.write("T", function(err, results) {
     if (err !== undefined){
@@ -89,6 +99,7 @@ serial.open(function (error) {
     console.log('>>> Failed to open serial port. Error: ' + error);
   } else {
     console.log('>>> Serial port open');
+    sendQuit(serial);
     getNVRAM(serial);
   }
 });
@@ -106,7 +117,7 @@ serial.on("close", function(){
 });
 
 serial.on('data', function(data) {
-  //console.log('>>> Serial data received: ' + data);
+  console.log('>>> Serial data received: ' + data);
   mBuffer += data;
   if (mBuffer.length < 16){
     //console.log("Don't have enough data yet");
