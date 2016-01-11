@@ -12,7 +12,7 @@ var twilioAuthToken = process.env.twilioAuthToken;
 var mBuffer = "";
 
 // INIT serial port
-var serial = new sp.SerialPort("/dev/tty.usbserial",{
+var serial = new sp.SerialPort("/dev/ttyAMA0",{
   baudrate: 9600,
   stopBits: 2
 });
