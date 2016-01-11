@@ -14,7 +14,8 @@ var mBuffer = "";
 // INIT serial port
 var serial = new sp.SerialPort("/dev/ttyAMA0",{
   baudrate: 9600,
-  stopBits: 2
+  stopBits: 2,
+  parser: sp.parsers.raw
 });
 
 function getNVRAM(serial){
