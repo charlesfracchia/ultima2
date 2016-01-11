@@ -99,8 +99,12 @@ serial.open(function (error) {
     console.log('>>> Failed to open serial port. Error: ' + error);
   } else {
     console.log('>>> Serial port open');
-    sendQuit(serial);
-    getNVRAM(serial);
+    serial.flush(function(){
+      console.log(">>> Serial port flushed");
+      sendQuit(serial);
+      getNVRAM(serial);
+    });
+
   }
 });
 
@@ -117,7 +121,7 @@ serial.on("close", function(){
 });
 
 serial.on('data', function(data) {
-  console.log('>>> Serial data received: ' + data);
+  console.log('>>> Serial data received: ' + data.toString('hex'));
   mBuffer += data;
   if (mBuffer.length < 16){
     //console.log("Don't have enough data yet");
