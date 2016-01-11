@@ -4,7 +4,7 @@ var sp = require('serialport');
 var moment = require('moment');
 var fs = require('fs');
 var convertBase = require('./convertBase.js').convertBase;
-console.log(convertBase.hex2bin());
+// console.log(convertBase.hex2bin());
 
 var twilioSID = process.env.twilioSID;
 var twilioAuthToken = process.env.twilioAuthToken;
@@ -116,5 +116,9 @@ serial.on('data', function(data) {
     mBuffer = "";
   }
 });
+
+var interval = setInterval(function (){
+  getNVRAM(serial);
+}, 5000);
 
 module.exports.processData = processData;
