@@ -100,7 +100,7 @@ serial.open(function (error) {
     console.log('>>> Serial port open');
     serial.flush(function(){
       console.log(">>> Serial port flushed");
-      sendQuit(serial);
+      //sendQuit(serial);
       getNVRAM(serial);
     });
 
