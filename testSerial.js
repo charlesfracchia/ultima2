@@ -19,10 +19,10 @@ serial.open(function (error) {
   }
 });
 
-serial.on('data', function(error, data){
+serial.on('data', function(data){
   if (error) {
     console.log('>>> Serial port data error: ' + error);
   } else {
-    console.log('>>> Data received: ' + data.toString());
+    console.log('>>> Data received: ' + data.toString('hex'));
   }
 });
