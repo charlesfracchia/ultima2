@@ -128,16 +128,16 @@ function dataTimeoutCB (mBuffer) {
   console.log(">>> Serial data stopped streaming, buffer length is: " + mBuffer.length);
   if (mBuffer.length < 16){
     console.log("Don't have enough data! L="+mBuffer.length);
-    console.log(mBuffer);
+    console.log(mBuffer.toString('hex'));
     mBuffer = "";
   }else if (mBuffer.length == 16){
     console.log(">>> Have enough! L="+mBuffer.length);
-    console.log(mBuffer);
+    console.log(mBuffer.toString('hex'));
     //processData(mBuffer);
     mBuffer = "";
   }else{
     console.log(">>> Have a lot L="+mBuffer.length);
-    console.log(mBuffer);
+    console.log(mBuffer.toString('hex'));
     mBuffer = "";
   }
 }
@@ -147,12 +147,12 @@ serial.on('data', function(data) {
   mBuffer += data;
   tm = setTimeout(function(){
     dataTimeoutCB(mBuffer);
-  }, 100);
-
+    mBuffer = "";
+  }, 1000);
 });
 
 var interval = setInterval(function (){
   getNVRAM(serial);
-}, 5000);
+}, 15000);
 
 module.exports.processData = processData;
