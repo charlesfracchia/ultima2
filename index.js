@@ -10,12 +10,17 @@ var twilioSID = process.env.twilioSID;
 var twilioAuthToken = process.env.twilioAuthToken;
 
 var mBuffer = "";
+var tm;
 
 // INIT serial port
 var serial = new sp.SerialPort("/dev/ttyAMA0",{
   baudrate: 9600,
   stopBits: 2
 });
+
+function resetTimeout (timoutName,duration) {
+  // body...
+}
 
 function sendQuit (serial) {
   serial.write("Q", function(err, results) {
@@ -119,17 +124,31 @@ serial.on("close", function(){
   console.log(message);
 });
 
+function dataTimeoutCB (mBuffer) {
+  console.log(">>> Serial data stopped streaming, buffer length is: " + mBuffer.length);
+  if (mBuffer.length < 16){
+    console.log("Don't have enough data! L="+mBuffer.length);
+    console.log(mBuffer);
+    mBuffer = "";
+  }else if (mBuffer.length == 16){
+    console.log(">>> Have enough! L="+mBuffer.length);
+    console.log(mBuffer);
+    //processData(mBuffer);
+    mBuffer = "";
+  }else{
+    console.log(">>> Have a lot L="+mBuffer.length);
+    console.log(mBuffer);
+    mBuffer = "";
+  }
+}
+
 serial.on('data', function(data) {
   console.log('>>> Serial data received: ' + data.toString('hex'));
   mBuffer += data;
-  if (mBuffer.length < 16){
-    //console.log("Don't have enough data yet");
-  }else{
-    console.log(">>> Have enough!");
-    console.log(mBuffer);
-    processData(mBuffer);
-    mBuffer = "";
-  }
+  tm = setTimeout(function(){
+    dataTimeoutCB(mBuffer);
+  }, 100);
+
 });
 
 var interval = setInterval(function (){
