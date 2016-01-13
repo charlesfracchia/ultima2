@@ -15,8 +15,7 @@ var stmFlag = true;
 
 // INIT serial port
 var serial = new sp.SerialPort("/dev/tty.usbserial",{
-  baudrate: 9600,
-  stopBits: 2
+  baudrate: 9600
 });
 
 function resetTimeout (timoutName,duration) {
