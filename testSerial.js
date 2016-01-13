@@ -1,9 +1,11 @@
 var sp = require('serialport');
-var serial = new sp.SerialPort("/dev/ttyAMA0",{
+var serial = new sp.SerialPort("/dev/tty.usbserial",{
   baudrate: 9600,
-  stopBits: 2,
-  parser: sp.parsers.raw
+  stopBits: 2
+  // parser: sp.parsers.raw
 });
+
+var mBuffer = "";
 
 serial.open(function (error) {
   if ( error ) {
@@ -22,4 +24,8 @@ serial.open(function (error) {
 
 serial.on('data', function(data){
   console.log('>>> Data received: ' + data.toString('hex'));
+  mBuffer += data;
+  setTimeout(function(){
+    console.log(mBuffer);
+  }, 2000);
 });

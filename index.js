@@ -11,9 +11,10 @@ var twilioAuthToken = process.env.twilioAuthToken;
 
 var mBuffer = "";
 var tm;
+var stmFlag = true;
 
 // INIT serial port
-var serial = new sp.SerialPort("/dev/ttyAMA0",{
+var serial = new sp.SerialPort("/dev/tty.usbserial",{
   baudrate: 9600,
   stopBits: 2
 });
@@ -126,29 +127,33 @@ serial.on("close", function(){
 
 function dataTimeoutCB (mBuffer) {
   console.log(">>> Serial data stopped streaming, buffer length is: " + mBuffer.length);
-  if (mBuffer.length < 16){
+  if (mBuffer.length < 16 && mBuffer.length > 0){
     console.log("Don't have enough data! L="+mBuffer.length);
-    console.log(mBuffer.toString('hex'));
-    mBuffer = "";
+    console.log(mBuffer);
   }else if (mBuffer.length == 16){
     console.log(">>> Have enough! L="+mBuffer.length);
-    console.log(mBuffer.toString('hex'));
-    //processData(mBuffer);
-    mBuffer = "";
+    console.log(mBuffer);
+    processData(mBuffer);
+  }else if (mBuffer.length === 0){
+
   }else{
-    console.log(">>> Have a lot L="+mBuffer.length);
-    console.log(mBuffer.toString('hex'));
-    mBuffer = "";
+    console.log(">>> Not sure? L="+mBuffer.length);
+    console.log(mBuffer);
   }
 }
 
 serial.on('data', function(data) {
-  console.log('>>> Serial data received: ' + data.toString('hex'));
+  console.log('>>> Serial data received: ' + data);
   mBuffer += data;
-  tm = setTimeout(function(){
-    dataTimeoutCB(mBuffer);
-    mBuffer = "";
-  }, 1000);
+  if (stmFlag == true){
+    stmFlag = false;
+    tm = setTimeout(function(){
+      dataTimeoutCB(mBuffer);
+      clearTimeout(tm);
+      stmFlag = true;
+      mBuffer = "";
+    }, 1000);
+  }
 });
 
 var interval = setInterval(function (){
