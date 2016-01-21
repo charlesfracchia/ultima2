@@ -6,7 +6,7 @@ var mqtt = require('mqtt');
 var fs = require('fs');
 var convertBase = require('./convertBase.js').convertBase;
 
-var client  = mqtt.connect('mqtt://test.mosquitto.org');
+var client = mqtt.connect('mqtt://test.mosquitto.org');
 var topic = "/CBA/015/n80Freezer";
 var twilioSID = process.env.twilioSID;
 var twilioAuthToken = process.env.twilioAuthToken;
@@ -170,6 +170,7 @@ function dataTimeoutCB (mBuffer) {
     console.log(mBuffer);
     var processed = processData(mBuffer);
     client.publish(topic, processed);
+    console.log(">>> Published processed data to MQTT topic: "+topic);
   }else if (mBuffer.length === 0){
 
   }else{
