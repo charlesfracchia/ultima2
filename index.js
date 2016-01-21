@@ -2,25 +2,43 @@
 var twilio = require('twilio');
 var sp = require('serialport');
 var moment = require('moment');
+var mqtt = require('mqtt');
 var fs = require('fs');
 var convertBase = require('./convertBase.js').convertBase;
-// console.log(convertBase.hex2bin());
 
+var client  = mqtt.connect('mqtt://test.mosquitto.org');
+var topic = "/CBA/015/n80Freezer";
 var twilioSID = process.env.twilioSID;
 var twilioAuthToken = process.env.twilioAuthToken;
+var maxSlope = 10;              //In loss of ºC/Hr
+var refreshInterval = 15000;    //In milliseconds
+var nbPoints = 60*60/refreshInterval/1000;   //Number of points used for trend averaging
+var slopeBuffer = [];
 
 var mBuffer = "";
 var tm;
 var stmFlag = true;
 
 // INIT serial port
-var serial = new sp.SerialPort("/dev/tty.usbserial",{
+var serial = new sp.SerialPort("/dev/ttyAMA0",{
   baudrate: 9600
 });
 
-function resetTimeout (timoutName,duration) {
-  // body...
-}
+client.on('connect', function () {
+  console.log(">>> Connected to MQTT hub");
+  console.log(">>> Subscribed to "+ topic);
+  client.subscribe(topic);
+});
+
+client.on('message', function (topic, message) {
+  var message = message.toString();
+  console.log(">>> Received topic message: " + message);
+  if (message[0] === "I"){
+    var interval = parseInt(message.replace("I=",""));
+    console.log(">>> Received interval update message. Updating to "+interval+" ms refresh interval");
+    refreshInterval = interval;
+  }
+});
 
 function sendQuit (serial) {
   serial.write("Q", function(err, results) {
@@ -89,6 +107,24 @@ function processStatus (statusBytes) {
   return status;
 }
 
+function checkSlope (slidingWindow, nbPoints) {
+  var slopeObj = {};
+  if (slidingWindow.length < nbPoints){
+    console.log(">>> Sliding window not full: " + slidingWindow.length  + "/" + nbPoints);
+    slopeObj.hour = null;
+    if (slidingWindow.length < nbPoints / 60){
+      slopeObj.minute = null;
+    }else{
+      var dy = slidingWindow[slidingWindow.length-1] - slidingWindow[slidingWindow.length-(nbPoints/60)];
+      slopeObj.minute = ;
+    }
+  }else{
+    console.log(">>> Sliding window full");
+  }
+  var dy = slidingWindow[slidingWindow.length-1] - slidingWindow[0];
+  return dy;
+}
+
 function addToLogFile (data) {
   fs.appendFile('logData.txt', data+'\n', function (err) {
     if (err){
@@ -132,7 +168,8 @@ function dataTimeoutCB (mBuffer) {
   }else if (mBuffer.length == 16){
     console.log(">>> Have enough! L="+mBuffer.length);
     console.log(mBuffer);
-    processData(mBuffer);
+    var processed = processData(mBuffer);
+    client.publish(topic, processed);
   }else if (mBuffer.length === 0){
 
   }else{
@@ -144,7 +181,7 @@ function dataTimeoutCB (mBuffer) {
 serial.on('data', function(data) {
   console.log('>>> Serial data received: ' + data);
   mBuffer += data;
-  if (stmFlag == true){
+  if (stmFlag === true){
     stmFlag = false;
     tm = setTimeout(function(){
       dataTimeoutCB(mBuffer);
@@ -157,6 +194,7 @@ serial.on('data', function(data) {
 
 var interval = setInterval(function (){
   getNVRAM(serial);
-}, 15000);
+}, refreshInterval);
 
 module.exports.processData = processData;
+module.exports.checkSlope = checkSlope;
