@@ -116,7 +116,7 @@ function checkSlope (slidingWindow, nbPoints) {
       slopeObj.minute = null;
     }else{
       var dy = slidingWindow[slidingWindow.length-1] - slidingWindow[slidingWindow.length-(nbPoints/60)];
-      slopeObj.minute = ;
+      slopeObj.minute = null;
     }
   }else{
     console.log(">>> Sliding window full");
