@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/dygraph/1.1.1/dygraph-combined.js"></script>
+    <script src="browserMqtt.js"></script>
+  </head>
+  <body>
+    <center>
+      <h1>Freezer Data</h1>
+      <div id="div_g" style="width:95%; height:45%;"></div>
+    </center>
+  </body>
+  <script>
+    function addPointToGraph (point, data, graph) {
+      var x = new Date();  // current time
+      var y = point;
+      data.push([x, y]);
+      graph.updateOptions( { 'file': data } );
+    }
+    var data = [];
+    var t = new Date();
+    var graph = new Dygraph(document.getElementById("div_g"), data,
+      {
+        drawPoints: true,
+        // showRoller: true,
+        valueRange: [-100, 10],
+        labels: ['Time', 'Freezer Temperature']
+      });
+    var client = mqtt.connect(
+      {
+        host: 'test.mosquitto.org',
+        port: 8080
+      });
+    client.subscribe("/CBA/015/n80Freezer");
+    console.log(">>> Subscribed to /CBA/015/n80Freezer");
+    client.on("message", function(topic, payload) {
+      payload = payload.toString();
+      console.log(">>> Received message on MQTT: "+ payload);
+      if (payload[0] === "T") {
+        addPointToGraph(parseInt(payload.replace("T=","")), data, graph);
+      }else{
+        console.log(">>> Message is not temperature packet");
+      }
+    });
+  </script>
+</html>

@@ -71,7 +71,8 @@ function processData (data) {
   bytes.temperature = processTemp(bytes.temperature);
   bytes.status = processStatus(bytes.status);
   bytes.setPoint = processTemp(bytes.setPoint);
-  // addToLogFile(data);
+  // addToLogFile(data, 'logData.txt');
+  addToLogFile(bytes.temperature+'\n', 'tempLog.txt');
   console.log(bytes);
   return bytes;
 }
@@ -125,8 +126,8 @@ function checkSlope (slidingWindow, nbPoints) {
   return dy;
 }
 
-function addToLogFile (data) {
-  fs.appendFile('logData.txt', data+'\n', function (err) {
+function addToLogFile (data, filepath) {
+  fs.appendFile(filepath, data+'\n', function (err) {
     if (err){
       console.log(err);
       console.log(">>> Error logging data to log file! Data was: " + data);
@@ -169,8 +170,8 @@ function dataTimeoutCB (mBuffer) {
     console.log(">>> Have enough! L="+mBuffer.length);
     console.log(mBuffer);
     var processed = processData(mBuffer);
-    client.publish(topic, processed);
-    console.log(">>> Published processed data to MQTT topic: "+topic);
+    client.publish(topic, "T="+processed.temperature);
+    console.log(">>> Published processed temperature to MQTT topic: "+topic);
   }else if (mBuffer.length === 0){
 
   }else{
