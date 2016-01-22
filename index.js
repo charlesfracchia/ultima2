@@ -71,9 +71,8 @@ function processData (data) {
   bytes.temperature = processTemp(bytes.temperature);
   bytes.status = processStatus(bytes.status);
   bytes.setPoint = processTemp(bytes.setPoint);
-  // addToLogFile(data, 'logData.txt');
-  addToLogFile(bytes.temperature+'\n', 'tempLog.txt');
-  console.log(bytes);
+  var now = new Date();
+  addToLogFile(now+","+bytes.temperature+'\n', 'tempLog.txt');
   return bytes;
 }
 
