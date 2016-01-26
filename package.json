@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/charlesfracchia/ultima2#readme",
   "dependencies": {
+    "express": "^4.13.4",
     "moment": "^2.11.1",
     "mqtt": "^1.6.3",
     "serialport": "^2.0.6",
