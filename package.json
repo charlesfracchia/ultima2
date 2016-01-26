@@ -4,7 +4,8 @@
   "description": "Revco Ultima II Freezer monitoring utility. It sends SMS messages to a pre-determined list of people when the temperature starts dropping rapidly",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -27,5 +28,6 @@
     "mqtt": "^1.6.3",
     "serialport": "^2.0.6",
     "twilio": "^2.8.0"
-  }
+  },
+  "devDependencies": {}
 }

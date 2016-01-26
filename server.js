@@ -1,6 +1,7 @@
 var express = require('express');
 var fs = require('fs');
 var mqtt = require('mqtt');
+var index = require('./index.js');
 
 var app = express();
 app.use(express.static(__dirname + '/server'));
