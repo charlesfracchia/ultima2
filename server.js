@@ -25,6 +25,6 @@ app.get('/live', function (req, res) {
   res.sendFile(__dirname + '/server/index.html');
 });
 
-app.listen(8080, function () {
-  console.log('Example app listening on port 8080!');
+app.listen(12345, function () {
+  console.log('Example app listening on port 12345!');
 });
