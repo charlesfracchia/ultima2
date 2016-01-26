@@ -5,15 +5,6 @@ var mqtt = require('mqtt');
 var app = express();
 app.use(express.static(__dirname + '/server'));
 
-var client = mqtt.connect('mqtt://test.mosquitto.org');
-var topic = "/CBA/015/n80Freezer";
-
-client.on('connect', function () {
-  console.log(">>> Connected to MQTT hub");
-  console.log(">>> Subscribed to "+ topic);
-  client.subscribe(topic);
-});
-
 app.get('/', function (req, res) {
   fs.readFile('logData.txt', 'utf8', function (err,data) {
     if (err) {
