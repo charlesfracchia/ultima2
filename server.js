@@ -2,23 +2,22 @@ var express = require('express');
 var fs = require('fs');
 var mqtt = require('mqtt');
 var index = require('./index.js');
+var exphbs = require('express-handlebars');
 
 var app = express();
 app.use(express.static(__dirname + '/server'));
+app.engine('.hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
+app.set('view engine', '.hbs');
 
-app.get('/', function (req, res) {
-  fs.readFile('logData.txt', 'utf8', function (err,data) {
+app.get('/history', function (req, res) {
+  fs.readFile('tempLog.txt', 'utf8', function (err,data) {
     if (err) {
       res.send("Error reading the file: "+err);
     }
     console.log(">>> DATA: "+data.length);
-    console.log(">>> DATA: "+typeof(data));
-    for (i=0; i<data.length+1; i++){
-      var proc = index.processData(data[i]);
-      console.log(proc.temperature);
-      client.publish(topic, "T="+proc.temperature);
-    }
-    res.send("Success");
+    data = data.split("\n");
+    var meow = { m : data };
+    res.render('history',meow);
   });
 });
 

@@ -1,0 +1,35 @@
+<center>
+  <h1>Freezer Data</h1>
+  <div id="div_g" style="width:95%; height:45%;"></div>
+</center>
+<script>
+  function addPointToGraph (pointDict, data) {
+    data.push([new Date(pointDict.timestamp), parseInt(pointDict.value)]);
+  }
+  function updateGraph (data, graph) {
+    graph.updateOptions( { 'file': data } );
+  }
+  var graphData = [];
+  var graph = new Dygraph(document.getElementById("div_g"), graphData,
+  {
+    drawPoints: true,
+    valueRange: [-100, 10],
+    labels: ['Time', 'Freezer Temperature']
+  });
+
+  logData = "{{m}}";
+  logData = logData.split(",");
+  var readings = [];
+  var cur = {};
+  for (i=0; i<logData.length; i++){
+    if (i % 2 == 0) {
+      cur.timestamp = logData[i];
+    }else if (i % 2 == 1) {
+      cur.value = logData[i];
+      readings.push(cur);
+      addPointToGraph(cur, graphData);
+      cur = {};
+    }
+  }
+  updateGraph(graphData, graph);
+</script>
