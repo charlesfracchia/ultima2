@@ -72,7 +72,7 @@ function processData (data) {
   bytes.status = processStatus(bytes.status);
   bytes.setPoint = processTemp(bytes.setPoint);
   var now = new Date();
-  addToLogFile(now+","+bytes.temperature+'\n', 'tempLog.txt');
+  addToLogFile(now+","+bytes.temperature, 'tempLog.txt');
   return bytes;
 }
 
