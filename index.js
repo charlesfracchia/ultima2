@@ -79,7 +79,7 @@ function processData (data) {
 function processTemp (tempBytes) {
   var i = parseInt(tempBytes, 16);
   var t = i / 129 - 243.7519;
-  return Math.round(t);
+  return t;
 }
 
 function processStatus (statusBytes) {
