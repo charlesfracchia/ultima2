@@ -4,7 +4,7 @@
 </center>
 <script>
   function addPointToGraph (pointDict, data) {
-    data.push([new Date(pointDict.timestamp), parseInt(pointDict.value)]);
+    data.push([new Date(pointDict.timestamp), parseFloat(pointDict.value)]);
   }
   function updateGraph (data, graph) {
     graph.updateOptions( { 'file': data } );
