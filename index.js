@@ -10,7 +10,7 @@ var client = mqtt.connect('mqtt://test.mosquitto.org');
 var topic = "/CBA/015/n80Freezer";
 var twilioSID = process.env.twilioSID;
 var twilioAuthToken = process.env.twilioAuthToken;
-var maxSlope = 0.3;             //Determined looking at longitudinal data
+var maxSlope = 0.15;             //Determined looking at longitudinal data
 var refreshInterval = 15000;    //In milliseconds
 var flag = false;               //Flag to start alerting check routine
 var timeOpen = [];              //Keeps dates for how long flag has been on
@@ -84,7 +84,7 @@ function processData (data) {
 function processTemp (tempBytes) {
   var i = parseInt(tempBytes, 16);
   var t = i / 129 - 243.7519;
-  return t.toFixed(2);
+  return parseFloat(t).toFixed(2);
 }
 
 function processStatus (statusBytes) {
