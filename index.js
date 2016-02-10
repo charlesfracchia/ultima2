@@ -184,7 +184,7 @@ function dataTimeoutCB (mBuffer) {
     //Keep the correct time diff
     if (flag) {
       console.log(">>> Freezer is in alert");
-      timeOpen[0] = now;
+      timeOpen[1] = now;
     }else{
       timeOpen.slice(0,1);
       timeOpen.push(now);
