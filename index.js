@@ -10,10 +10,12 @@ var client = mqtt.connect('mqtt://test.mosquitto.org');
 var topic = "/CBA/015/n80Freezer";
 var twilioSID = process.env.twilioSID;
 var twilioAuthToken = process.env.twilioAuthToken;
-var maxSlope = 10;              //In loss of ºC/Hr
+var maxSlope = 0.3;             //Determined looking at longitudinal data
 var refreshInterval = 15000;    //In milliseconds
-var nbPoints = 60*60/refreshInterval/1000;   //Number of points used for trend averaging
-var slopeBuffer = [];
+var flag = false;               //Flag to start alerting check routine
+var timeOpen = [];              //Keeps dates for how long flag has been on
+var values = [];
+var times = [];
 
 var mBuffer = "";
 var tm;
@@ -24,6 +26,7 @@ var serial = new sp.SerialPort("/dev/ttyAMA0",{
   baudrate: 9600
 });
 
+/*********************MQTT*********************/
 client.on('connect', function () {
   console.log(">>> Connected to MQTT hub");
   console.log(">>> Subscribed to "+ topic);
@@ -39,7 +42,9 @@ client.on('message', function (topic, message) {
     refreshInterval = interval;
   }
 });
+/*******************END MQTT*******************/
 
+/*********************REVCO ULTIMA II*********************/
 function sendQuit (serial) {
   serial.write("Q", function(err, results) {
     if (err !== undefined){
@@ -106,34 +111,10 @@ function processStatus (statusBytes) {
   };
   return status;
 }
+/*******************END REVCO ULTIMA II*******************/
 
-function checkSlope (slidingWindow, nbPoints) {
-  var slopeObj = {};
-  if (slidingWindow.length < nbPoints){
-    console.log(">>> Sliding window not full: " + slidingWindow.length  + "/" + nbPoints);
-    slopeObj.hour = null;
-    if (slidingWindow.length < nbPoints / 60){
-      slopeObj.minute = null;
-    }else{
-      var dy = slidingWindow[slidingWindow.length-1] - slidingWindow[slidingWindow.length-(nbPoints/60)];
-      slopeObj.minute = null;
-    }
-  }else{
-    console.log(">>> Sliding window full");
-  }
-  var dy = slidingWindow[slidingWindow.length-1] - slidingWindow[0];
-  return dy;
-}
-
-function addToLogFile (data, filepath) {
-  fs.appendFile(filepath, data+'\n', function (err) {
-    if (err){
-      console.log(err);
-      console.log(">>> Error logging data to log file! Data was: " + data);
-    }
-  });
-}
-
+/*********************SERIAL*********************/
+//When serial is open
 serial.open(function (error) {
   if ( error ) {
     console.log('>>> Failed to open serial port. Error: ' + error);
@@ -148,18 +129,37 @@ serial.open(function (error) {
   }
 });
 
+//On error of the Serial comm
 serial.on("error", function(error){
   var mo = moment().format('MMMM Do YYYY, h:mm:ss a');
   var message = ">>> Serial port error at: " + mo + "\nError: " + error;
   console.log(message);
 });
 
+//When closing the serial port
 serial.on("close", function(){
   var mo = moment().format('MMMM Do YYYY, h:mm:ss a');
   var message = ">>> Serial port closed at: " + mo;
   console.log(message);
 });
 
+//Fires when data is received from the serial port
+serial.on('data', function(data) {
+  console.log('>>> Serial data received: ' + data);
+  mBuffer += data;
+  if (stmFlag === true){
+    stmFlag = false;
+    tm = setTimeout(function(){
+      //This executes after 1s (timeout for the serial TX)
+      dataTimeoutCB(mBuffer);
+      clearTimeout(tm);
+      stmFlag = true;
+      mBuffer = "";
+    }, 1000);
+  }
+});
+
+//Function that executes when the serial port transmit timeout triggers
 function dataTimeoutCB (mBuffer) {
   console.log(">>> Serial data stopped streaming, buffer length is: " + mBuffer.length);
   if (mBuffer.length < 16 && mBuffer.length > 0){
@@ -169,6 +169,31 @@ function dataTimeoutCB (mBuffer) {
     console.log(">>> Have enough! L="+mBuffer.length);
     console.log(mBuffer);
     var processed = processData(mBuffer);
+    var now = new Date();
+    //Push the latest values and timestamps correctly
+    if (values.length < 2){
+      values.push(point);
+      times.push(now);
+    }else{
+      values.splice(0,1);
+      times.splice(0,1);
+      values.push(point);
+      times.push(now);
+    }
+    //Calculate the slope and set the alert flag if it's higher than a threshold
+    var slope = getSlope(values,times);
+    console.log(">>> Slope is "+slope.toFixed(2));
+    if (slope > maxSlope) { flag = true; }
+    //Keep the correct time diff
+    if (flag) {
+      console.log(">>> Freezer is in alert");
+      timeOpen[0] = now;
+    }else{
+      timeOpen.slice(0,1); timeOpen.push(now);
+    }
+    //Check whether we need to alert the user
+    checkTimeOpen(timeOpen);
+    //Publish the temperature to the live front end using MQTT
     client.publish(topic, "T="+processed.temperature);
     console.log(">>> Published processed temperature to MQTT topic: "+topic);
   }else if (mBuffer.length === 0){
@@ -178,24 +203,48 @@ function dataTimeoutCB (mBuffer) {
     console.log(mBuffer);
   }
 }
+/********************END SERIAL********************/
 
-serial.on('data', function(data) {
-  console.log('>>> Serial data received: ' + data);
-  mBuffer += data;
-  if (stmFlag === true){
-    stmFlag = false;
-    tm = setTimeout(function(){
-      dataTimeoutCB(mBuffer);
-      clearTimeout(tm);
-      stmFlag = true;
-      mBuffer = "";
-    }, 1000);
+function checkTimeOpen(timeOpen) {
+  //Calculate time difference, in seconds
+  var timeDiff = (timeOpen[1] - timeOpen[0]) / 1000;
+  console.log(">>> Freezer has been in alert for "+parseInt(timeDiff/60)+" minutes");
+  //Check if flag is set
+  if (flag) {
+    //If has been open for more than 15m
+    if(timeDiff > 900){
+      //Contact users using SMS service
+      client.publish(topic, '<font color="red">CONTACTING USERS *NOT IMPLEMENTED YET*</font>');
+      flag = false;
+      timeOpen = [];
+    }else{
+      client.publish(topic, '<font color="orange">alert, temperature climbing for '+parseInt(timeDiff/60)+' minutes</font>');
+    }
   }
-});
+}
 
+//Calculate slope
+function getSlope (values,times) {
+  return slope = (values[1] - values[0]) / (times[1] - times[0]);
+}
+
+//Add data to log file
+function addToLogFile (data, filepath) {
+  fs.appendFile(filepath, data+'\n', function (err) {
+    if (err){
+      console.log(err);
+      console.log(">>> Error logging data to log file! Data was: " + data);
+    }
+  });
+}
+
+/********************MAIN********************/
 var interval = setInterval(function (){
   getNVRAM(serial);
 }, refreshInterval);
+/******************END MAIN******************/
 
+/********************EXPORTS********************/
 module.exports.processData = processData;
-module.exports.checkSlope = checkSlope;
+module.exports.getSlope = getSlope;
+/******************END EXPORTS******************/

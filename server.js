@@ -22,7 +22,7 @@ app.get('/history', function (req, res) {
 });
 
 app.get('/live', function (req, res) {
-  res.sendFile(__dirname + '/server/index.html');
+  res.render('live');
 });
 
 app.listen(12345, function () {

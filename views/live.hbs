@@ -1,0 +1,99 @@
+<center>
+  <h1>Live Freezer Data</h1>
+  <div id="status">
+    <h3>STATUS: </h3>
+  </div>
+  <div id="div_g" style="width:95%; height:45%;"></div>
+</center>
+<script>
+  // var flag = false;
+  // var timeOpen = [];
+  // function checkFlag() {
+  //   //Calculate time difference, in seconds
+  //   var timeDiff = (timeOpen[1] - timeOpen[0]) / 1000;
+  //   //Check if flag is set
+  //   if (flag) {
+  //     //If has been open for more than 15m
+  //     if(timeDiff > 900){
+  //       //Contact users using SMS service
+  //       setStatus('<font color="red">CONTACTING USERS *NOT IMPLEMENTED YET*</font>');
+  //       flag = false;
+  //       timeOpen = [];
+  //     }else{
+  //       setStatus('<font color="orange">alert, temperature climbing for '+parseInt(timeDiff/60)+' minutes</font>');
+  //     }
+  //   }
+  // }
+  // function setStatus(status) {
+  //   document.getElementById("status").innerHTML = "<h3>STATUS: "+status+"</h3>"
+  // }
+  // function classify () {
+  //   //Calculate slope
+  //   var slope = (values[1] - values[0]) / (times[1] - times[0]);
+  //   console.log(slope);
+  //   if (slope > 0.15) {
+  //     var status = "Door Open";
+  //     flag = true;
+  //   }
+  //   setStatus(status);
+  // }
+  function addPointToGraph (point, data, graph) {
+    var x = new Date();  // current time
+    var y = point;
+    data.push([x, y]);
+    graph.updateOptions( { 'file': data } );
+  }
+  var data = [];
+  var values = [];
+  var times = [];
+  var t = new Date();
+  var graph = new Dygraph(document.getElementById("div_g"), data,
+    {
+      drawPoints: true,
+      // showRoller: true,
+      valueRange: [-100, 10],
+      labels: ['Time', 'Freezer Temperature']
+    });
+  var client = mqtt.connect(
+    {
+      host: 'test.mosquitto.org',
+      port: 8080
+    });
+  client.subscribe("/CBA/015/n80Freezer");
+  console.log(">>> Subscribed to /CBA/015/n80Freezer");
+  client.on("message", function(topic, payload) {
+    payload = payload.toString();
+    var point = parseFloat(payload.replace("T=",""))
+    console.log(">>> Received message on MQTT: "+ payload);
+    if (payload[0] === "T") {
+      addPointToGraph(point, data, graph);
+      // var now = new Date();
+      // if (values.length < 2){
+      //   values.push(point);
+      //   times.push(now);
+      // }else{
+      //   values.splice(0,1);
+      //   times.splice(0,1);
+      //   values.push(point);
+      //   times.push(now);
+      // }
+      // //If the flag is set and the temperature is at least -80ºC
+      // if (flag && point < -85) {
+      //   //Reset the low temperature flag
+      //   flag = false;
+      //   timeOpen = [];
+      // }
+      // //Push the first value only if there is no alert
+      // if (!flag) {
+      //   timeOpen = [];
+      //   timeOpen.push(now);
+      // }else{
+      //   timeOpen[1] = now;
+      // }
+      // classify();
+      // checkFlag();
+    }else{
+      console.log(">>> Message is not temperature packet");
+    }
+  });
+</script>
