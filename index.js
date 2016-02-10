@@ -181,7 +181,7 @@ function dataTimeoutCB (mBuffer) {
     }
     //Calculate the slope and set the alert flag if it's higher than a threshold
     var slope = getSlope(values,times);
-    console.log(">>> Slope is "+slope.toFixed(2));
+    console.log(">>> Slope is "+slope.toFixed(10));
     if (slope > maxSlope) { flag = true; }
     //Keep the correct time diff
     if (flag) {
