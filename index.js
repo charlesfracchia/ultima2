@@ -172,12 +172,12 @@ function dataTimeoutCB (mBuffer) {
     var now = new Date();
     //Push the latest values and timestamps correctly
     if (values.length < 2){
-      values.push(point);
+      values.push(processed.temperature);
       times.push(now);
     }else{
       values.splice(0,1);
       times.splice(0,1);
-      values.push(point);
+      values.push(processed.temperature);
       times.push(now);
     }
     //Calculate the slope and set the alert flag if it's higher than a threshold
