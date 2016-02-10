@@ -8,8 +8,6 @@ var convertBase = require('./convertBase.js').convertBase;
 
 var client = mqtt.connect('mqtt://test.mosquitto.org');
 var topic = "/CBA/015/n80Freezer";
-var twilioSID = process.env.twilioSID;
-var twilioAuthToken = process.env.twilioAuthToken;
 var maxSlope = 0.15;             //Determined looking at longitudinal data
 var refreshInterval = 15000;    //In milliseconds
 var flag = false;               //Flag to start alerting check routine
@@ -188,7 +186,8 @@ function dataTimeoutCB (mBuffer) {
       console.log(">>> Freezer is in alert");
       timeOpen[0] = now;
     }else{
-      timeOpen.slice(0,1); timeOpen.push(now);
+      timeOpen.slice(0,1);
+      timeOpen.push(now);
     }
     //Check whether we need to alert the user
     checkTimeOpen(timeOpen);
@@ -211,14 +210,15 @@ function checkTimeOpen(timeOpen) {
   //Check if flag is set
   if (flag) {
     console.log(">>> Freezer has been in alert for "+parseInt(timeDiff/60)+" minutes");
+    console.log("DEBUG: timeOpen is "+timeOpen);
     //If has been open for more than 15m
     if(timeDiff > 900){
       //Contact users using SMS service
-      client.publish(topic, '<font color="red">CONTACTING USERS *NOT IMPLEMENTED YET*</font>');
+      client.publish(topic, 'CONTACTING USERS *NOT IMPLEMENTED YET*');
       flag = false;
       timeOpen = [];
     }else{
-      client.publish(topic, '<font color="orange">alert, temperature climbing for '+parseInt(timeDiff/60)+' minutes</font>');
+      client.publish(topic, 'Alert, temperature climbing for '+parseInt(timeDiff/60)+' minutes</font>');
     }
   }
 }
