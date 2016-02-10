@@ -186,7 +186,7 @@ function dataTimeoutCB (mBuffer) {
       console.log(">>> Freezer is in alert");
       timeOpen[1] = now;
     }else{
-      timeOpen.slice(0,1);
+      timeOpen = timeOpen.slice(1,1);
       timeOpen.push(now);
     }
     //Check whether we need to alert the user
