@@ -91,7 +91,6 @@ function processStatus (statusBytes) {
   var sta = convertBase.hex2bin(statusBytes);
   var diff = 16 - sta.length;
   sta = "0".repeat(diff) + sta;
-  console.log(sta.length);
 
   var alS = [];
   if (sta[14] == 1) alS.push("high");
@@ -163,11 +162,11 @@ serial.on('data', function(data) {
 function dataTimeoutCB (mBuffer) {
   console.log(">>> Serial data stopped streaming, buffer length is: " + mBuffer.length);
   if (mBuffer.length < 16 && mBuffer.length > 0){
-    console.log("Don't have enough data! L="+mBuffer.length);
+    console.log(">>> Don't have enough data! L="+mBuffer.length);
     console.log(mBuffer);
   }else if (mBuffer.length == 16){
-    console.log(">>> Have enough! L="+mBuffer.length);
-    console.log(mBuffer);
+    // console.log(">>> Have enough! L="+mBuffer.length);
+    // console.log(mBuffer);
     var processed = processData(mBuffer);
     var now = new Date();
     //Push the latest values and timestamps correctly
@@ -196,6 +195,7 @@ function dataTimeoutCB (mBuffer) {
     //Publish the temperature to the live front end using MQTT
     client.publish(topic, "T="+processed.temperature);
     console.log(">>> Published processed temperature to MQTT topic: "+topic);
+    console.log("\n");
   }else if (mBuffer.length === 0){
 
   }else{
@@ -208,9 +208,9 @@ function dataTimeoutCB (mBuffer) {
 function checkTimeOpen(timeOpen) {
   //Calculate time difference, in seconds
   var timeDiff = (timeOpen[1] - timeOpen[0]) / 1000;
-  console.log(">>> Freezer has been in alert for "+parseInt(timeDiff/60)+" minutes");
   //Check if flag is set
   if (flag) {
+    console.log(">>> Freezer has been in alert for "+parseInt(timeDiff/60)+" minutes");
     //If has been open for more than 15m
     if(timeDiff > 900){
       //Contact users using SMS service
