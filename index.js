@@ -11,7 +11,7 @@ var conf = {
   "username" : process.env.MQTTUsername,
   "password" : process.env.MQTTPassword
 }
-var client = mqtt.connect('mqtt://mqtt.biobright.org', conf)
+var client = mqtt.connect(process.env.MQTTHost, conf)
 var topic = process.env.MQTTTopic;
 var maxSlope = 0.15;             //Determined looking at longitudinal data
 var refreshInterval = 15000;    //In milliseconds
