@@ -6,8 +6,13 @@ var mqtt = require('mqtt');
 var fs = require('fs');
 var convertBase = require('./convertBase.js').convertBase;
 
-var client = mqtt.connect('mqtt://test.mosquitto.org');
-var topic = "/CBA/015/n80Freezer";
+var conf = {
+  "rejectUnauthorized": false,
+  "username" : process.env.MQTTUsername,
+  "password" : process.env.MQTTPassword
+}
+var client = mqtt.connect('mqtt://mqtt.biobright.org', conf)
+var topic = "/BioBrightLabs/MIT015/freezer/revco015";
 var maxSlope = 0.15;             //Determined looking at longitudinal data
 var refreshInterval = 15000;    //In milliseconds
 var flag = false;               //Flag to start alerting check routine
