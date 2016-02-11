@@ -12,7 +12,7 @@ var conf = {
   "password" : process.env.MQTTPassword
 }
 var client = mqtt.connect('mqtt://mqtt.biobright.org', conf)
-var topic = "/BioBrightLabs/MIT015/freezer/revco015";
+var topic = process.env.MQTTTopic;
 var maxSlope = 0.15;             //Determined looking at longitudinal data
 var refreshInterval = 15000;    //In milliseconds
 var flag = false;               //Flag to start alerting check routine
@@ -197,7 +197,14 @@ function dataTimeoutCB (mBuffer) {
     //Check whether we need to alert the user
     checkTimeOpen(timeOpen);
     //Publish the temperature to the live front end using MQTT
-    client.publish(topic, "T="+processed.temperature);
+    var packet = {
+      "x" : Date.now(),
+      "y" : processed.temperature,
+      "source" : "revco015",
+      client_id : client.options.clientId,
+      reading_id : "freezer"
+    };
+    client.publish(topic, packet);
     console.log(">>> Published processed temperature to MQTT topic: "+topic);
     console.log("\n");
   }else if (mBuffer.length === 0){
