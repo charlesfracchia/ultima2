@@ -11,7 +11,7 @@ var conf = {
   "username" : process.env.MQTTUsername,
   "password" : process.env.MQTTPassword
 }
-var client = mqtt.connect(process.env.MQTTHost, conf)
+var client = mqtt.connect(process.env.MQTTHost, conf);
 var topic = process.env.MQTTTopic;
 var maxSlope = 0.15;             //Determined looking at longitudinal data
 var refreshInterval = 15000;    //In milliseconds
@@ -204,7 +204,7 @@ function dataTimeoutCB (mBuffer) {
       client_id : client.options.clientId,
       reading_id : "freezer"
     };
-    client.publish(topic, packet);
+    client.publish(topic, JSON.stringify(packet));
     console.log(">>> Published processed temperature to MQTT topic: "+topic);
     console.log("\n");
   }else if (mBuffer.length === 0){
