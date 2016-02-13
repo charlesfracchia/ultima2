@@ -29,7 +29,7 @@
     "moment": "^2.11.1",
     "mqtt": "^1.6.3",
     "serialport": "^2.0.6",
-    "twilio": "^2.8.0"
+    "twilio": "^2.9.0"
   },
   "devDependencies": {}
 }
