@@ -104,6 +104,7 @@ function dataTimeoutCB (mBuffer) {
     // console.log(mBuffer);
     var processed = ultima2.processData(mBuffer);
     var now = new Date();
+    addToLogFile(now+","+processed.temperature, 'tempLog.txt');
     //Push the latest values and timestamps correctly
     if (values.length < 2){
       values.push(processed.temperature);
