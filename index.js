@@ -4,7 +4,6 @@ var sp = require('serialport');
 var moment = require('moment');
 var mqtt = require('mqtt');
 var fs = require('fs');
-var convertBase = require('./convertBase.js').convertBase;
 var ultima2 = require('./ultima2.js');
 
 var conf = {

@@ -1,3 +1,5 @@
+var convertBase = require('./convertBase.js').convertBase;
+
 function sendQuit (serial) {
   serial.write("Q", function(err, results) {
     if (err !== undefined){
